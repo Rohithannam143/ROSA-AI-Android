@@ -48,10 +48,53 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+@Composable
+private fun RosaSettings(language: String, onLanguageChange: (String) -> Unit, onBack: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 22.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = onBack) { Text("← BACK", color = Cyan) }
+            Spacer(Modifier.weight(1f))
+            Text("SETTINGS", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+        }
+        Text("Personalize your ROSA experience", color = White.copy(alpha = .65f), fontSize = 14.sp)
+        Surface(color = Panel, shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("AI CONNECTION", color = Cyan, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                Text("Gemini is not connected yet", color = White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("This build currently uses ROSA's offline Python assistant. Secure Gemini connection will be enabled after the backend is deployed.", color = White.copy(alpha = .65f), fontSize = 13.sp)
+                Text("API key: Not stored on this device", color = Cyan, fontSize = 12.sp)
+            }
+        }
+        Surface(color = Panel, shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("LANGUAGE", color = Cyan, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                listOf("en" to "English", "te" to "తెలుగు", "hi" to "हिन्दी").forEach { (code, label) ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, color = White, modifier = Modifier.weight(1f), fontSize = 14.sp)
+                        RadioButton(selected = language == code, onClick = { onLanguageChange(code) }, colors = RadioButtonDefaults.colors(selectedColor = Cyan, unselectedColor = White.copy(alpha = .5f)))
+                    }
+                }
+            }
+        }
+        Surface(color = Panel, shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("ABOUT ROSA", color = Cyan, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                Text("ROSA AI · Android prototype", color = White, fontSize = 14.sp)
+                Text("Version 3.0 · Offline assistant preview", color = White.copy(alpha = .55f), fontSize = 12.sp)
+            }
+        }
+    }
+}
+
 @Composable
 private fun RosaHome() {
     var input by remember { mutableStateOf("") }
     var language by remember { mutableStateOf("en") }
+    var showSettings by remember { mutableStateOf(false) }
     val lines = remember { mutableStateListOf(ChatLine("Hi, I'm ROSA. Tell me what you need.", false)) }
     val pulse = rememberInfiniteTransition(label = "orb")
     val scale by pulse.animateFloat(0.96f, 1.04f, infiniteRepeatable(tween(1800), RepeatMode.Reverse), label = "scale")
@@ -61,13 +104,15 @@ private fun RosaHome() {
         onBackground = White, onSurface = White
     )) {
         Surface(Modifier.fillMaxSize(), color = Ink) {
-            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 22.dp)) {
+            if (showSettings) {
+                RosaSettings(language = language, onLanguageChange = { language = it }, onBack = { showSettings = false })
+            } else Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 22.dp)) {
                 Row(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("ROSA", color = White, fontSize = 25.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
                         Text("YOUR PERSONAL AI", color = Cyan, fontSize = 10.sp, letterSpacing = 2.sp)
                     }
-                    IconButton(onClick = { lines.add(ChatLine("Settings and secure AI connection will be available here.", false)) }) {
+                    IconButton(onClick = { showSettings = true }) {
                         Icon(Icons.Default.Settings, null, tint = White)
                     }
                 }
