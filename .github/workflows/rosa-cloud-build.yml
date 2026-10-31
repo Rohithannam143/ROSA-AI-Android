@@ -67,6 +67,17 @@ jobs:
           t = src.read_text()
           t = t.replace("singleLine = true", "setSingleLine(true)")
           src.write_text(t)
+          # Apply the Android Keystore credential vault to the packaged project.
+          vault = Path("engineering/CredentialVault.kt")
+          target = Path("workspace/ROSA_AI_Android/app/src/main/java/com/rosa/assistant/CredentialVault.kt")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_text(vault.read_text())
+          t = src.read_text()
+          t = t.replace('prefs.getString("api_key", "") ?: ""', 'CredentialVault.read(this)')
+          t = t.replace('setText(prefs.getString("api_key", ""))', 'setText(CredentialVault.read(this))')
+          t = t.replace('prefs.edit().putString("api_key", field.text.toString().trim()).apply()', 'CredentialVault.write(this, field.text.toString().trim())')
+          t = t.replace('prefs.edit().remove("api_key").apply()', 'CredentialVault.clear(this)')
+          src.write_text(t)
           PY
       - name: Run unit tests, lint and debug build
         working-directory: workspace/ROSA_AI_Android
