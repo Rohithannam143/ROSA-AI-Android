@@ -75,6 +75,7 @@ jobs:
           t = src.read_text()
           t = t.replace('prefs.getString("api_key", "") ?: ""', 'CredentialVault.read(this)')
           t = t.replace('setText(prefs.getString("api_key", ""))', 'setText(CredentialVault.read(this))')
+          t = t.replace("setText(CredentialVault.read(this))", "setText(CredentialVault.read(this@MainActivity))")
           t = t.replace('prefs.edit().putString("api_key", field.text.toString().trim()).apply()', 'CredentialVault.write(this, field.text.toString().trim())')
           t = t.replace('prefs.edit().remove("api_key").apply()', 'CredentialVault.clear(this)')
           src.write_text(t)
