@@ -57,6 +57,16 @@ jobs:
                   raise SystemExit("Android Gradle block missing")
               s = s.replace("android {", "android {\n" + block, 1)
               p.write_text(s)
+          # The legacy archive omitted AndroidX Core despite importing its APIs.
+          s = p.read_text()
+          if 'androidx.core:core-ktx' not in s:
+              s += '\n\ndependencies {\\n    implementation("androidx.core:core-ktx:1.15.0")\\n}\\n'
+              p.write_text(s)
+          # Kotlin synthetic property is not exposed for EditText.singleLine.
+          src = Path("workspace/ROSA_AI_Android/app/src/main/java/com/rosa/assistant/MainActivity.kt")
+          t = src.read_text()
+          t = t.replace("input.singleLine = true", "input.setSingleLine(true)")
+          src.write_text(t)
           PY
       - name: Run unit tests, lint and debug build
         working-directory: workspace/ROSA_AI_Android
