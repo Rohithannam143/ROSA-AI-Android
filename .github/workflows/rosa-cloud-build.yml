@@ -65,7 +65,7 @@ jobs:
           # Kotlin synthetic property is not exposed for EditText.singleLine.
           src = Path("workspace/ROSA_AI_Android/app/src/main/java/com/rosa/assistant/MainActivity.kt")
           t = src.read_text()
-          t = t.replace("input.singleLine = true", "input.setSingleLine(true)")
+          t = t.replace("singleLine = true", "setSingleLine(true)")
           src.write_text(t)
           PY
       - name: Run unit tests, lint and debug build
