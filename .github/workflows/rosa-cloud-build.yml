@@ -60,7 +60,7 @@ jobs:
           # The legacy archive omitted AndroidX Core despite importing its APIs.
           s = p.read_text()
           if 'androidx.core:core-ktx' not in s:
-              s += '\n\ndependencies {\\n    implementation("androidx.core:core-ktx:1.15.0")\\n}\\n'
+              s += '\n\ndependencies {\n    implementation("androidx.core:core-ktx:1.15.0")\n}\n'
               p.write_text(s)
           # Kotlin synthetic property is not exposed for EditText.singleLine.
           src = Path("workspace/ROSA_AI_Android/app/src/main/java/com/rosa/assistant/MainActivity.kt")
