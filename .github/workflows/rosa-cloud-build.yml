@@ -55,7 +55,7 @@ jobs:
           """
               if "android {" not in s:
                   raise SystemExit("Android Gradle block missing")
-              s = s.replace("android {", "android {\\n" + block, 1)
+              s = s.replace("android {", "android {\n" + block, 1)
               p.write_text(s)
           PY
       - name: Run unit tests, lint and debug build
