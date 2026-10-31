@@ -1,0 +1,70 @@
+name: ROSA Android Cloud Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+      - rosa-2.0-engineering
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rosa-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Build and validate Android app
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Verify and extract supplied project
+        run: |
+          test -f ROSA_AI_Redmi_A4_5G_Mobile_Cloud_Build.zip
+          unzip -t ROSA_AI_Redmi_A4_5G_Mobile_Cloud_Build.zip
+          mkdir -p workspace
+          unzip -q ROSA_AI_Redmi_A4_5G_Mobile_Cloud_Build.zip -d workspace
+          test -f workspace/ROSA_AI_Android/app/build.gradle.kts
+          test -f workspace/ROSA_AI_Android/app/src/main/AndroidManifest.xml
+
+      - name: Run unit tests, lint and debug build
+        working-directory: workspace/ROSA_AI_Android
+        run: |
+          gradle --no-daemon clean testDebugUnitTest lintDebug assembleDebug
+
+      - name: Upload APK and validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ROSA-engineering-validation
+          path: |
+            workspace/ROSA_AI_Android/app/build/outputs/apk/debug/*.apk
+            workspace/ROSA_AI_Android/app/build/reports/lint-results-debug.html
+            workspace/ROSA_AI_Android/app/build/test-results/testDebugUnitTest/
+          if-no-files-found: warn
+          retention-days: 14
