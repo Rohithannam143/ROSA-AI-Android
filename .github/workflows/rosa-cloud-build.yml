@@ -48,14 +48,14 @@ jobs:
           p = Path("workspace/ROSA_AI_Android/app/build.gradle.kts")
           s = p.read_text()
           if "sourceCompatibility = JavaVersion.VERSION_17" not in s:
-              s = s.replace("android {", """android {
-              compileOptions {
+              block = """    compileOptions {
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
-              kotlinOptions {
-                  jvmTarget = "17"
-              }""", 1)
+          """
+              if "android {" not in s:
+                  raise SystemExit("Android Gradle block missing")
+              s = s.replace("android {", "android {\\n" + block, 1)
               p.write_text(s)
           PY
       - name: Run unit tests, lint and debug build
