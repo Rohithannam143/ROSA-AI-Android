@@ -51,12 +51,24 @@ jobs:
 
       - name: Verify and extract supplied project
         run: |
+          set -euo pipefail
           test -f ROSA_AI_Redmi_A4_5G_Mobile_Cloud_Build.zip
           unzip -t ROSA_AI_Redmi_A4_5G_Mobile_Cloud_Build.zip
           mkdir -p workspace
           unzip -q ROSA_AI_Redmi_A4_5G_Mobile_Cloud_Build.zip -d workspace
           test -f workspace/ROSA_AI_Android/app/build.gradle.kts
           test -f workspace/ROSA_AI_Android/app/src/main/AndroidManifest.xml
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("workspace/ROSA_AI_Android/app/build.gradle.kts")
+          s = p.read_text()
+          if "sourceCompatibility = JavaVersion.VERSION_17" not in s:
+              marker = "    kotlinOptions {"
+              block = "    compileOptions {\\n        sourceCompatibility = JavaVersion.VERSION_17\\n        targetCompatibility = JavaVersion.VERSION_17\\n    }\\n"
+              if marker not in s:
+                  raise SystemExit("Could not locate kotlinOptions block to align JVM targets")
+              p.write_text(s.replace(marker, block + marker, 1))
+          PY
 
       - name: Run unit tests, lint and debug build
         working-directory: workspace/ROSA_AI_Android
